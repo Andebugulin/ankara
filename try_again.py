@@ -3,7 +3,6 @@ import pygame
 import pandas as pd
 import random
 
-
 white = '#FBFBF8'
 
 green = (0, 255, 0)
@@ -229,6 +228,7 @@ while not start:
             start = True
 Word.shuffle()
 index_current_word = 0
+max_index_current_word = len(Word.deck) - 1
 try:
     while True:
         display_surface.fill(white)
@@ -269,6 +269,17 @@ try:
                 elif event.key == pygame.K_5:
                     Word.deck[index_current_word].class0 = 5
                     index_current_word += 1
+                elif event.key == pygame.K_0:
+                    if index_current_word + 10 <= max_index_current_word:
+                        index_current_word += 10
+                    else:
+                        display_surface.fill(white)
+                        Word('warning: you can not move further with key 0, you reached the end of the list', '',
+                             '',
+                             datetime.date.today(), 0).show()
+                        pygame.display.update()
+                        pygame.time.wait(1500)
+            display_surface.fill(white)
             Word.deck[index_current_word].show()
             pygame.display.update()
 except IndexError:
