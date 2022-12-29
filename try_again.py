@@ -272,5 +272,6 @@ try:
             Word.deck[index_current_word].show()
             pygame.display.update()
 except IndexError:
+    Word.save_changes()
     pygame.quit()
     quit()
