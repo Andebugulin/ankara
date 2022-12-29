@@ -194,7 +194,11 @@ class Word:
             self.permission_for_changing_class = False
 
 
-Word.reading_from_file()
+try:
+    Word.reading_from_file()
+except PermissionError:
+    print('PermissionError, it seems that you forgot to close the excel file and we cannot approach it.')
+    print('just close the file.')
 display_surface.fill(white)
 Word.rendering('hello',
                '''for start press almost random key :^)-----------------------------------------------------------------
@@ -234,7 +238,12 @@ try:
         display_surface.fill(white)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                Word.save_changes()
+                try:
+                    Word.save_changes()
+                except PermissionError:
+                    print(
+                        'PermissionError, it seems that you forgot to close the excel file and we cannot approach it.')
+                    print('just close the file.')
                 pygame.quit()
                 quit()
 
@@ -283,6 +292,10 @@ try:
             Word.deck[index_current_word].show()
             pygame.display.update()
 except IndexError:
-    Word.save_changes()
+    try:
+        Word.save_changes()
+    except PermissionError:
+        print('PermissionError, it seems that you forgot to close the excel file and we cannot approach it.')
+        print('just close the file.')
     pygame.quit()
     quit()

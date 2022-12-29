@@ -1,13 +1,3 @@
-suspend                  B2
-sweep                    B2
-tackle                   B2
-tale                     B2
-tension                  B2
-thorough                 B2
-tissue                   B2
-ton                      B2
-tonne                    B2
-trace                    B2
 trait                    B2
 trial                    B2
 tribe                    B2
