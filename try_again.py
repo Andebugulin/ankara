@@ -192,6 +192,7 @@ class Word:
 
     @class0.setter
     def class0(self, value: int):
+        # there is a problem with version or something.
         if self.__last_changes_of_class != datetime.date.today():
             if self.permission_for_changing_class:
                 if value > 3:
