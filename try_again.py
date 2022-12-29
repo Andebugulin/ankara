@@ -229,44 +229,48 @@ while not start:
             start = True
 Word.shuffle()
 index_current_word = 0
-while True:
-    display_surface.fill(white)
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            Word.save_changes()
-            pygame.quit()
-            quit()
+try:
+    while True:
+        display_surface.fill(white)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                Word.save_changes()
+                pygame.quit()
+                quit()
 
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_f:
-                Word.deck[index_current_word].switch(word=True)
-            elif event.key == pygame.K_d:
-                Word.deck[index_current_word].switch(meaning=True)
-            elif event.key == pygame.K_s:
-                Word.deck[index_current_word].switch(example=True)
-            elif event.key == pygame.K_SPACE or event.key == pygame.K_RIGHT:
-                index_current_word += 1
-            elif event.key == pygame.K_LEFT:
-                index_current_word -= 1
-            # 1 - do not remember
-            # 2 - hard
-            # 3 - normal
-            # 4 - nice
-            # 5 - very impressive
-            elif event.key == pygame.K_1:
-                Word.deck[index_current_word].class0 = 1
-                index_current_word += 1
-            elif event.key == pygame.K_2:
-                Word.deck[index_current_word].class0 = 2
-                index_current_word += 1
-            elif event.key == pygame.K_3:
-                Word.deck[index_current_word].class0 = 3
-                index_current_word += 1
-            elif event.key == pygame.K_4:
-                Word.deck[index_current_word].class0 = 4
-                index_current_word += 1
-            elif event.key == pygame.K_5:
-                Word.deck[index_current_word].class0 = 5
-                index_current_word += 1
-    Word.deck[index_current_word].show()
-    pygame.display.update()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_f:
+                    Word.deck[index_current_word].switch(word=True)
+                elif event.key == pygame.K_d:
+                    Word.deck[index_current_word].switch(meaning=True)
+                elif event.key == pygame.K_s:
+                    Word.deck[index_current_word].switch(example=True)
+                elif event.key == pygame.K_SPACE or event.key == pygame.K_RIGHT:
+                    index_current_word += 1
+                elif event.key == pygame.K_LEFT:
+                    index_current_word -= 1
+                # 1 - do not remember
+                # 2 - hard
+                # 3 - normal
+                # 4 - nice
+                # 5 - very impressive
+                elif event.key == pygame.K_1:
+                    Word.deck[index_current_word].class0 = 1
+                    index_current_word += 1
+                elif event.key == pygame.K_2:
+                    Word.deck[index_current_word].class0 = 2
+                    index_current_word += 1
+                elif event.key == pygame.K_3:
+                    Word.deck[index_current_word].class0 = 3
+                    index_current_word += 1
+                elif event.key == pygame.K_4:
+                    Word.deck[index_current_word].class0 = 4
+                    index_current_word += 1
+                elif event.key == pygame.K_5:
+                    Word.deck[index_current_word].class0 = 5
+                    index_current_word += 1
+            Word.deck[index_current_word].show()
+            pygame.display.update()
+except IndexError:
+    pygame.quit()
+    quit()
