@@ -53,16 +53,20 @@ class Word:
     def reading_from_file():
         data = pd.read_excel(file, index_col=0, parse_dates=True)
 
+        data['last_changes_of_class'] = data['last_changes_of_class'].fillna(
+            (datetime.date.today() - datetime.timedelta(days=1)))
         data['classes'] = data['classes'].fillna(0)
         data['date'] = data['date'].fillna(datetime.date.today())
         data.to_excel(file)
         # initialization of objects
         for index, date_word_meaning_ex in data.iterrows():
             # classes and date have altering type.
-            word_meaning_ex = [i.strip() for i in date_word_meaning_ex.tolist()[1:-1]]
+            word_meaning_ex = [i.strip() for i in date_word_meaning_ex.tolist()[1:-2]]
             date = date_word_meaning_ex.tolist()[0]
-            _class = date_word_meaning_ex.tolist()[-1]
-            object0 = Word(word_meaning_ex[0], word_meaning_ex[1], word_meaning_ex[2], date, _class)
+            _class = date_word_meaning_ex.tolist()[-2]
+            last_changes_of_class = date_word_meaning_ex.tolist()[-1]
+            object0 = Word(word_meaning_ex[0], word_meaning_ex[1], word_meaning_ex[2], date, _class,
+                           last_changes_of_class)
             if _class < 5:
                 Word.deck_without_reverse_cards.append(object0)
 
@@ -70,7 +74,8 @@ class Word:
 
                 Word.deck_without_shuffle.append(object0)
                 Word.deck_without_shuffle.append(
-                    Word(word_meaning_ex[1], word_meaning_ex[0], word_meaning_ex[2], date, _class))
+                    Word(word_meaning_ex[1], word_meaning_ex[0], word_meaning_ex[2], date, _class,
+                         last_changes_of_class))
             else:
                 if (datetime.date.today().day - date.day) % Days_full_of_relax_if_class_is_5 == 0:
                     Word.deck_without_shuffle.append(object0)
@@ -79,8 +84,10 @@ class Word:
     @staticmethod
     def save_changes():
         classes = [i.class0 for i in Word.deck_without_reverse_cards]
+        classes_changes = [i.class_changes for i in Word.deck_without_reverse_cards]
         data = pd.read_excel(file, parse_dates=True, index_col=0)
         data['classes'] = classes
+        data['last_changes_of_class'] = classes_changes
         data.to_excel(file)
 
     @staticmethod
@@ -109,12 +116,14 @@ class Word:
             Word.screen.blit(word_surface, (x, y))
             x += word_wid + space
 
-    def __init__(self, word: str, meaning: str, example: str, date: datetime, _class=0):
+    def __init__(self, word: str, meaning: str, example: str, date: datetime, _class=0,
+                 last_changes_of_class=(datetime.date.today() - datetime.timedelta(days=1))):
         self.__word = word
         self.__meaning = meaning
         self.__example = example
         self.__class = _class
         self.__date = date
+        self.__last_changes_of_class = last_changes_of_class
 
         self.word_showing = True
         self.meaning_showing = False
@@ -183,15 +192,25 @@ class Word:
 
     @class0.setter
     def class0(self, value: int):
-        if self.permission_for_changing_class:
-            if value > 3:
-                if self.__class != 5:
-                    self.__class += 1
-            else:
-                if self.__class != 0:
-                    self.__class -= 1
-                Word.deck.append(Word.deck[index_current_word])
-            self.permission_for_changing_class = False
+        if self.__last_changes_of_class != datetime.date.today():
+            if self.permission_for_changing_class:
+                if value > 3:
+                    if self.__class != 5:
+                        self.__class += 1
+                else:
+                    if self.__class != 0:
+                        self.__class -= 1
+                    Word.deck.append(Word.deck[index_current_word])
+                self.permission_for_changing_class = False
+            self.__last_changes_of_class = datetime.date.today()
+
+    @property
+    def class_changes(self):
+        return self.__last_changes_of_class
+
+    @class_changes.getter
+    def class_changes(self):
+        return self.__last_changes_of_class
 
 
 try:
