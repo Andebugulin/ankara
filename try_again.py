@@ -344,6 +344,9 @@ try:
                 draw = True
 
             if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    pygame.quit()
+                    quit()
                 if event.key == pygame.K_f:
                     Word.deck[index_current_word].switch(word=True)
                 elif event.key == pygame.K_d:
