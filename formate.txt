@@ -1,13 +1,3 @@
-trait                    B2
-trial                    B2
-tribe                    B2
-tune                     B2
-ultimate                 B2
-ultimately               B2
-undergo                  B2
-undertake                B2
-unfold                   B2
-urge                     B2
 vary                     B2
 venue                    B2
 vital                    B2

@@ -13,17 +13,45 @@ Days_full_of_relax_if_class_is_5 = 3
 
 pygame.init()
 X, Y = 1700, 900
-display_surface = pygame.display.set_mode((X, Y))
+screen = pygame.display.set_mode((X, Y))
 pygame.display.set_caption('You can bear it, i believe in you')
-
-pygame.display.set_mode((X, Y))
 
 # xls file with the data (excel)
 file = 'capture.xlsx'
 
 
+# creating buttons: again, hard, normal, nice, impressive, back, next
+class Button:
+    def __init__(self, color, x, y, text=''):
+        self.color = color
+        self.x = x
+        self.y = y
+        self.width = 0
+        self.height = 0
+        self.text = text
+
+    def draw(self, display_drawing):
+        # Call this method to draw the button on the screen
+        font = pygame.font.SysFont('Helvetica', 50)
+        text = font.render(self.text, True, (0, 0, 0))
+        self.width, self.height = text.get_size()
+        display_drawing.blit(text,
+                             (self.x + 10,
+                              self.y - 50))
+
+        pygame.draw.rect(display_drawing, black, (self.x, self.y - self.height, self.width + 20, self.height + 20), 4)
+
+    def where_clicked(self, pos):
+        # Pos is the mouse position or a tuple of (x,y) coordinates
+        if (pos[0] > self.x) and (pos[0] < self.x + self.width + 20):
+            if (pos[1] > self.y - self.height) and (pos[1] < self.y + 20 + self.height):
+                return True
+        return False
+
+
+# creating class word with words meanings and examples.
 class Word:
-    screen = display_surface
+    screen = screen
     font = pygame.font.SysFont('Helvetica', 70)
     deck_without_shuffle = []
     deck = []
@@ -219,7 +247,7 @@ try:
 except PermissionError:
     print('PermissionError, it seems that you forgot to close the excel file and we cannot approach it.')
     print('just close the file.')
-display_surface.fill(white)
+screen.fill(white)
 Word.rendering('hello',
                '''for start press almost random key :^)-----------------------------------------------------------------
                -
@@ -251,11 +279,28 @@ while not start:
         if event.type == pygame.KEYDOWN:
             start = True
 Word.shuffle()
+
+# all the buttons
+N = 30
+again_button = Button(white, 0 * X // 10 + 430, Y - N, text='again')
+hard_button = Button(white, X // 10 + 400, Y - N, text='hard')
+normal_button = Button(white, 2 * X // 10 + 430, Y - N, text='normal')
+nice_button = Button(white, 3 * X // 10 + 497, Y - N, text='nice')
+impressive_button = Button(white, 4 * X // 10 + 440, Y - N, text='impressive')
+back_card_button = Button(white, 10, Y - N, text='previous card')
+next_card_button = Button(white, 1500, Y - N, text='next card')
+word_button = Button(white, 600, Y - 4 * N, text='word')
+meaning_button = Button(white, 753, Y - 4 * N, text='meaning')
+example_button = Button(white, 972, Y - 4 * N, text='example')
+button_list = [again_button, hard_button, normal_button, nice_button, impressive_button, back_card_button,
+               next_card_button, word_button, meaning_button, example_button]
+
+start = False
 index_current_word = 0
 max_index_current_word = len(Word.deck) - 1
+draw = True
 try:
     while True:
-        display_surface.fill(white)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 try:
@@ -266,6 +311,37 @@ try:
                     print('just close the file.')
                 pygame.quit()
                 quit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                position_ = pygame.mouse.get_pos()
+                for button in button_list:
+                    if button.where_clicked(position_):
+                        if button.text == 'again':
+                            Word.deck[index_current_word].class0 = 1
+                            index_current_word += 1
+                        elif button.text == 'hard':
+                            Word.deck[index_current_word].class0 = 2
+                            index_current_word += 1
+                        elif button.text == 'normal':
+                            Word.deck[index_current_word].class0 = 3
+                            index_current_word += 1
+                        elif button.text == 'nice':
+                            Word.deck[index_current_word].class0 = 4
+                            index_current_word += 1
+                        elif button.text == 'impressive':
+                            Word.deck[index_current_word].class0 = 5
+                            index_current_word += 1
+                        elif button.text == 'previous card':
+                            index_current_word -= 1
+                        elif button.text == 'next card':
+                            index_current_word += 1
+                        elif button.text == 'word':
+                            Word.deck[index_current_word].switch(word=True)
+                        elif button.text == 'meaning':
+                            Word.deck[index_current_word].switch(meaning=True)
+                        elif button.text == 'example':
+                            Word.deck[index_current_word].switch(example=True)
+                        break
+                draw = True
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_f:
@@ -302,15 +378,20 @@ try:
                     if index_current_word + 10 <= max_index_current_word:
                         index_current_word += 10
                     else:
-                        display_surface.fill(white)
+                        screen.fill(white)
                         Word('warning: you can not move further with key 0, you reached the end of the list', '',
                              '',
                              datetime.date.today(), 0).show()
                         pygame.display.update()
                         pygame.time.wait(1500)
-            display_surface.fill(white)
-            Word.deck[index_current_word].show()
-            pygame.display.update()
+                draw = True
+            if draw:
+                screen.fill(white)
+                Word.deck[index_current_word].show()
+                for button in button_list:
+                    button.draw(screen)
+                pygame.display.update()
+                draw = False
 except IndexError:
     try:
         Word.save_changes()
