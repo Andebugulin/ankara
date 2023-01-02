@@ -51,6 +51,7 @@ class Button:
 
 # creating class word with words meanings and examples.
 class Word:
+    all_words_in_file = []
     screen = screen
     font = pygame.font.SysFont('Helvetica', 70)
     deck_without_shuffle = []
@@ -95,6 +96,7 @@ class Word:
             last_changes_of_class = date_word_meaning_ex.tolist()[-1]
             object0 = Word(word_meaning_ex[0], word_meaning_ex[1], word_meaning_ex[2], date, _class,
                            last_changes_of_class)
+            Word.all_words_in_file.append(object0)
             if _class < 5:
                 Word.deck_without_reverse_cards.append(object0)
 
@@ -111,8 +113,19 @@ class Word:
 
     @staticmethod
     def save_changes():
-        classes = [i.class0 for i in Word.deck_without_reverse_cards]
-        classes_changes = [i.class_changes for i in Word.deck_without_reverse_cards]
+        classes = []
+        classes_changes = []
+        for element in Word.all_words_in_file:
+            if element not in Word.deck_without_reverse_cards:
+                classes.append(element.class0)
+                classes_changes.append(element.class_changes)
+                continue
+            else:
+                for word in Word.deck_without_reverse_cards:
+                    if element == word:
+                        classes.append(word.class0)
+                        classes_changes.append(element.class_changes)
+                        break
         data = pd.read_excel(file, parse_dates=True, index_col=0)
         data['classes'] = classes
         data['last_changes_of_class'] = classes_changes
@@ -294,112 +307,116 @@ meaning_button = Button(white, 753, Y - 4 * N, text='meaning')
 example_button = Button(white, 972, Y - 4 * N, text='example')
 button_list = [again_button, hard_button, normal_button, nice_button, impressive_button, back_card_button,
                next_card_button, word_button, meaning_button, example_button]
-
-start = False
-index_current_word = 0
-max_index_current_word = len(Word.deck) - 1
-draw = True
 try:
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                try:
-                    Word.save_changes()
-                except PermissionError:
-                    print(
-                        'PermissionError, it seems that you forgot to close the excel file and we cannot approach it.')
-                    print('just close the file.')
-                pygame.quit()
-                quit()
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                position_ = pygame.mouse.get_pos()
-                for button in button_list:
-                    if button.where_clicked(position_):
-                        if button.text == 'again':
-                            Word.deck[index_current_word].class0 = 1
-                            index_current_word += 1
-                        elif button.text == 'hard':
-                            Word.deck[index_current_word].class0 = 2
-                            index_current_word += 1
-                        elif button.text == 'normal':
-                            Word.deck[index_current_word].class0 = 3
-                            index_current_word += 1
-                        elif button.text == 'nice':
-                            Word.deck[index_current_word].class0 = 4
-                            index_current_word += 1
-                        elif button.text == 'impressive':
-                            Word.deck[index_current_word].class0 = 5
-                            index_current_word += 1
-                        elif button.text == 'previous card':
-                            index_current_word -= 1
-                        elif button.text == 'next card':
-                            index_current_word += 1
-                        elif button.text == 'word':
-                            Word.deck[index_current_word].switch(word=True)
-                        elif button.text == 'meaning':
-                            Word.deck[index_current_word].switch(meaning=True)
-                        elif button.text == 'example':
-                            Word.deck[index_current_word].switch(example=True)
-                        break
-                draw = True
-
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
+    start = False
+    index_current_word = 0
+    max_index_current_word = len(Word.deck) - 1
+    draw = True
+    try:
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    try:
+                        Word.save_changes()
+                    except PermissionError:
+                        print(
+                            'PermissionError, it seems that you forgot to close the excel file and we cannot approach it.')
+                        print('just close the file.')
                     pygame.quit()
                     quit()
-                if event.key == pygame.K_f:
-                    Word.deck[index_current_word].switch(word=True)
-                elif event.key == pygame.K_d:
-                    Word.deck[index_current_word].switch(meaning=True)
-                elif event.key == pygame.K_s:
-                    Word.deck[index_current_word].switch(example=True)
-                elif event.key == pygame.K_SPACE or event.key == pygame.K_RIGHT:
-                    index_current_word += 1
-                elif event.key == pygame.K_LEFT:
-                    index_current_word -= 1
-                # 1 - do not remember
-                # 2 - hard
-                # 3 - normal
-                # 4 - nice
-                # 5 - very impressive
-                elif event.key == pygame.K_1:
-                    Word.deck[index_current_word].class0 = 1
-                    index_current_word += 1
-                elif event.key == pygame.K_2:
-                    Word.deck[index_current_word].class0 = 2
-                    index_current_word += 1
-                elif event.key == pygame.K_3:
-                    Word.deck[index_current_word].class0 = 3
-                    index_current_word += 1
-                elif event.key == pygame.K_4:
-                    Word.deck[index_current_word].class0 = 4
-                    index_current_word += 1
-                elif event.key == pygame.K_5:
-                    Word.deck[index_current_word].class0 = 5
-                    index_current_word += 1
-                elif event.key == pygame.K_0:
-                    if index_current_word + 10 <= max_index_current_word:
-                        index_current_word += 10
-                    else:
-                        screen.fill(white)
-                        Word('warning: you can not move further with key 0, you reached the end of the list', '',
-                             '',
-                             datetime.date.today(), 0).show()
-                        pygame.display.update()
-                        pygame.time.wait(1500)
-                draw = True
-            if draw:
-                screen.fill(white)
-                Word.deck[index_current_word].show()
-                for button in button_list:
-                    button.draw(screen)
-                pygame.display.update()
-                draw = False
-except IndexError:
-    try:
-        Word.save_changes()
-    except PermissionError:
-        print('PermissionError, it seems that you forgot to close the excel file and we cannot approach it.')
-        print('just close the file.')
-    pygame.quit()
-    quit()
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    position_ = pygame.mouse.get_pos()
+                    for button in button_list:
+                        if button.where_clicked(position_):
+                            if button.text == 'again':
+                                Word.deck[index_current_word].class0 = 1
+                                index_current_word += 1
+                            elif button.text == 'hard':
+                                Word.deck[index_current_word].class0 = 2
+                                index_current_word += 1
+                            elif button.text == 'normal':
+                                Word.deck[index_current_word].class0 = 3
+                                index_current_word += 1
+                            elif button.text == 'nice':
+                                Word.deck[index_current_word].class0 = 4
+                                index_current_word += 1
+                            elif button.text == 'impressive':
+                                Word.deck[index_current_word].class0 = 5
+                                index_current_word += 1
+                            elif button.text == 'previous card':
+                                index_current_word -= 1
+                            elif button.text == 'next card':
+                                index_current_word += 1
+                            elif button.text == 'word':
+                                Word.deck[index_current_word].switch(word=True)
+                            elif button.text == 'meaning':
+                                Word.deck[index_current_word].switch(meaning=True)
+                            elif button.text == 'example':
+                                Word.deck[index_current_word].switch(example=True)
+                            break
+                    draw = True
+
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        pygame.quit()
+                        quit()
+                    if event.key == pygame.K_f:
+                        Word.deck[index_current_word].switch(word=True)
+                    elif event.key == pygame.K_d:
+                        Word.deck[index_current_word].switch(meaning=True)
+                    elif event.key == pygame.K_s:
+                        Word.deck[index_current_word].switch(example=True)
+                    elif event.key == pygame.K_SPACE or event.key == pygame.K_RIGHT:
+                        index_current_word += 1
+                    elif event.key == pygame.K_LEFT:
+                        index_current_word -= 1
+                    # 1 - do not remember
+                    # 2 - hard
+                    # 3 - normal
+                    # 4 - nice
+                    # 5 - very impressive
+                    elif event.key == pygame.K_1:
+                        Word.deck[index_current_word].class0 = 1
+                        index_current_word += 1
+                    elif event.key == pygame.K_2:
+                        Word.deck[index_current_word].class0 = 2
+                        index_current_word += 1
+                    elif event.key == pygame.K_3:
+                        Word.deck[index_current_word].class0 = 3
+                        index_current_word += 1
+                    elif event.key == pygame.K_4:
+                        Word.deck[index_current_word].class0 = 4
+                        index_current_word += 1
+                    elif event.key == pygame.K_5:
+                        Word.deck[index_current_word].class0 = 5
+                        index_current_word += 1
+                    elif event.key == pygame.K_0:
+                        if index_current_word + 10 <= max_index_current_word:
+                            index_current_word += 10
+                        else:
+                            screen.fill(white)
+                            Word('warning: you can not move further with key 0, you reached the end of the list', '',
+                                 '',
+                                 datetime.date.today(), 0).show()
+                            pygame.display.update()
+                            pygame.time.wait(1500)
+                    draw = True
+                if draw:
+                    screen.fill(white)
+                    Word.deck[index_current_word].show()
+                    for button in button_list:
+                        button.draw(screen)
+                    pygame.display.update()
+                    draw = False
+    except IndexError:
+        try:
+            Word.save_changes()
+        except PermissionError:
+            print('PermissionError, it seems that you forgot to close the excel file and we cannot approach it.')
+            print('just close the file.')
+        pygame.quit()
+        quit()
+except ValueError:
+    print('you did not end lesson, values were not saved.')
+pygame.quit()
+quit()
