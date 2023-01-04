@@ -2,7 +2,11 @@ import datetime
 import pygame
 import pandas as pd
 import random
+from gtts import gTTS
+import time
+import os
 
+language = 'en-us'
 white = '#FBFBF8'
 
 green = (0, 255, 0)
@@ -18,6 +22,7 @@ pygame.display.set_caption('You can bear it, i believe in you')
 
 # xls file with the data (excel)
 file = 'capture.xlsx'
+button_list = []
 
 
 # creating buttons: again, hard, normal, nice, impressive, back, next
@@ -57,6 +62,21 @@ class Word:
     deck_without_shuffle = []
     deck = []
     deck_without_reverse_cards = []
+
+    @staticmethod
+    def pronunciation(object_):
+        my_obj = gTTS(text=object_.current, lang=language, slow=False)
+        my_obj.save("welcome.mp3")
+        time.sleep(0.3)
+        pygame.mixer.init()
+        pygame.mixer.music.load('welcome.mp3')
+        pygame.mixer.music.play()
+        clock = pygame.time.Clock()
+        while pygame.mixer.music.get_busy():
+            pygame.event.poll()
+            clock.tick(10)
+        pygame.mixer.quit()
+        os.remove('welcome.mp3')
 
     @staticmethod
     def shuffle():
@@ -133,6 +153,8 @@ class Word:
 
     @staticmethod
     def rendering(massage: str, text: str, position):
+        if len(button_list) > 1:
+            button_list.pop(0)
         sentence = massage.split()
         space = Word.font.size(' ')[0]
         x, y = position
@@ -156,6 +178,8 @@ class Word:
                 y += 80
             Word.screen.blit(word_surface, (x, y))
             x += word_wid + space
+        button_pronunciation = Button(white, 10, y + 160, text='pronunciation')
+        button_list.insert(0, button_pronunciation)
 
     def __init__(self, word: str, meaning: str, example: str, date: datetime, _class=0,
                  last_changes_of_class=(datetime.date.today() - datetime.timedelta(days=1))):
@@ -254,6 +278,15 @@ class Word:
     def class_changes(self):
         return self.__last_changes_of_class
 
+    @property
+    def current(self):
+        if self.word_showing:
+            return self.__word
+        if self.meaning_showing:
+            return self.__meaning
+        if self.example_showing:
+            return self.__example
+
 
 try:
     Word.reading_from_file()
@@ -305,8 +338,16 @@ next_card_button = Button(white, 1500, Y - N, text='next card')
 word_button = Button(white, 600, Y - 4 * N, text='word')
 meaning_button = Button(white, 753, Y - 4 * N, text='meaning')
 example_button = Button(white, 972, Y - 4 * N, text='example')
-button_list = [again_button, hard_button, normal_button, nice_button, impressive_button, back_card_button,
-               next_card_button, word_button, meaning_button, example_button]
+button_list.append(again_button)
+button_list.append(hard_button)
+button_list.append(normal_button)
+button_list.append(nice_button)
+button_list.append(impressive_button)
+button_list.append(back_card_button)
+button_list.append(next_card_button)
+button_list.append(word_button)
+button_list.append(meaning_button)
+button_list.append(example_button)
 try:
     start = False
     index_current_word = 0
@@ -320,7 +361,8 @@ try:
                         Word.save_changes()
                     except PermissionError:
                         print(
-                            'PermissionError, it seems that you forgot to close the excel file and we cannot approach it.')
+                            'PermissionError, it seems that you forgot to close the excel file and we cannot approach'
+                            ' it.')
                         print('just close the file.')
                     pygame.quit()
                     quit()
@@ -353,6 +395,8 @@ try:
                                 Word.deck[index_current_word].switch(meaning=True)
                             elif button.text == 'example':
                                 Word.deck[index_current_word].switch(example=True)
+                            elif button.text == 'pronunciation':
+                                Word.pronunciation(Word.deck[index_current_word])
                             break
                     draw = True
 
