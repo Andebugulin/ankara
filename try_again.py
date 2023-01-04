@@ -127,6 +127,9 @@ class Word:
                     Word(word_meaning_ex[1], word_meaning_ex[0], word_meaning_ex[2], date, _class,
                          last_changes_of_class))
             else:
+                if random.uniform(0, 1) < 0.5:
+                    object0 = Word(word_meaning_ex[1], word_meaning_ex[0], word_meaning_ex[2], date, _class,
+                                   last_changes_of_class)
                 if (datetime.date.today().day - date.day) % Days_full_of_relax_if_class_is_5 == 0:
                     Word.deck_without_shuffle.append(object0)
                     Word.deck_without_reverse_cards.append(object0)
