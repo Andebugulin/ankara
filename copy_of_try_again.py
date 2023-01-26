@@ -21,7 +21,7 @@ screen = pygame.display.set_mode((X, Y))
 pygame.display.set_caption('You can bear it, i believe in you')
 
 # xls file with the data (excel)
-file = 'capture.xlsx'
+file = 'capture_test.xlsx'
 button_list = []
 
 
