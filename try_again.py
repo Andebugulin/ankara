@@ -142,6 +142,10 @@ class Word:
                 Word.deck_without_shuffle.append(object0)
                 Word.deck_without_reverse_cards.append(object0)
 
+            for word in Word.all_words_in_file:
+                if word.recalling != 0 and word.class_changes:
+                    word.recalling -= 1
+
     @staticmethod
     def save_changes():
         classes = []
@@ -297,6 +301,9 @@ class Word:
     @class_changes.getter
     def class_changes(self):
         return self.__last_changes_of_class
+    @class_changes.setter
+    def class_changes(self, value: int):
+        self.__last_changes_of_class = value
 
     @property
     def current(self):
