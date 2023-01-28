@@ -141,10 +141,17 @@ class Word:
 
                 Word.deck_without_shuffle.append(object0)
                 Word.deck_without_reverse_cards.append(object0)
+        for word_not_shown in Word.all_words_in_file:
+            for word_shown in Word.deck_without_reverse_cards:
+                if word_not_shown.word == word_shown.word:
+                    break
+            else:
+                if word_not_shown.class_changes != datetime.date.today():
+                    word_not_shown.class_changes = datetime.date.today()
+                    word_not_shown.recalling -= 1
+        time.sleep(0.001)
 
-            for word in Word.all_words_in_file:
-                if word.recalling != 0 and word.class_changes:
-                    word.recalling -= 1
+
 
     @staticmethod
     def save_changes():
@@ -291,7 +298,7 @@ class Word:
             self.__last_changes_of_class = datetime.date.today()
             if self.__class == 5 and self.recalling == 0:
                 self.recalling = random.randrange(3, 6)
-            if self.recalling != 0:
+            elif self.recalling != 0:
                 self.recalling -= 1
 
     @property
@@ -477,6 +484,15 @@ try:
                     Word.deck[index_current_word].show()
                     for button in button_list:
                         button.draw(screen)
+
+                    count = 0
+                    id = 0
+                    for index, button in enumerate(button_list):
+                        if button.text == 'pronunciation':
+                            count += 1
+                            id = index
+                    if count == 2:
+                        button_list.pop(id)
                     pygame.display.update()
                     draw = False
     except IndexError:
