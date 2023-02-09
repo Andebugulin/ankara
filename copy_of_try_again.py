@@ -116,6 +116,7 @@ class Word:
         # initialization of objects
         for index, date_word_meaning_ex in data.iterrows():
             # classes and date have altering type.
+            shown = False
             word_meaning_ex = [i.strip() for i in date_word_meaning_ex.tolist()[1:-4]]
             date = date_word_meaning_ex.tolist()[0]
             _class = date_word_meaning_ex.tolist()[-4]
@@ -134,6 +135,7 @@ class Word:
                 Word.deck_without_shuffle.append(
                     Word(word_meaning_ex[1], word_meaning_ex[0], word_meaning_ex[2], date, _class,
                          last_changes_of_class, date_becoming, recalling))
+                shown = True
             elif recalling == 0:
                 if random.uniform(0, 1) < 0.5:
                     object0 = Word(word_meaning_ex[1], word_meaning_ex[0], word_meaning_ex[2], date, _class,
@@ -141,6 +143,23 @@ class Word:
 
                 Word.deck_without_shuffle.append(object0)
                 Word.deck_without_reverse_cards.append(object0)
+                shown = True
+
+            if object0.class_changes != datetime.date.today():
+                if not shown:
+                    if object0.recalling >= 0:
+                        object0.recalling -= 1
+                        object0.class_changes = datetime.date.today()
+                    if object0.recalling < 0:
+                        object0.recalling = random.randrange(3,
+                                                                    6)
+                        object0.class_changes = datetime.date.today()
+            if object0.recalling < 0:
+                object0.recalling = random.randrange(3,
+                                                            6)
+                object0.class_changes = datetime.date.today()
+
+
 
     @staticmethod
     def save_changes():
@@ -280,15 +299,17 @@ class Word:
                 elif value < 3:
                     if self.__class != 0:
                         self.__class -= 1
-                    Word.deck.append(Word.deck[index_current_word])
+                    if value == 1:
+                        Word.deck.append(Word.deck[index_current_word])
                 else:
                     pass
                 self.permission_for_changing_class = False
             self.__last_changes_of_class = datetime.date.today()
-            if self.__class == 5 and self.recalling == 0:
-                self.recalling = random.randrange(3, 6)
             if self.recalling != 0:
                 self.recalling -= 1
+            elif self.__class == 5 and self.recalling == 0:
+                self.recalling = random.randrange(3, 6)
+
 
     @property
     def class_changes(self):
@@ -297,6 +318,10 @@ class Word:
     @class_changes.getter
     def class_changes(self):
         return self.__last_changes_of_class
+
+    @class_changes.setter
+    def class_changes(self, value: int):
+        self.__last_changes_of_class = value
 
     @property
     def current(self):
@@ -379,6 +404,7 @@ try:
                 if event.type == pygame.QUIT:
                     try:
                         Word.save_changes()
+
                     except PermissionError:
                         print(
                             'PermissionError, it seems that you forgot to close the excel file and we cannot approach'
@@ -403,7 +429,7 @@ try:
                                 Word.deck[index_current_word].class0 = 4
                                 index_current_word += 1
                             elif button.text == 'impressive':
-                                Word.deck[index_current_word].class0 = 5
+                                Word.deck[index_current_word].class0 = 4
                                 index_current_word += 1
                             elif button.text == 'previous card':
                                 index_current_word -= 1
@@ -470,6 +496,15 @@ try:
                     Word.deck[index_current_word].show()
                     for button in button_list:
                         button.draw(screen)
+
+                    count = 0
+                    id = 0
+                    for index, button in enumerate(button_list):
+                        if button.text == 'pronunciation':
+                            count += 1
+                            id = index
+                    if count == 2:
+                        button_list.pop(id)
                     pygame.display.update()
                     draw = False
     except IndexError:
