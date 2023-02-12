@@ -113,6 +113,7 @@ class Word:
         data['date_becoming'] = data['date_becoming'].fillna(datetime.date(2222, 2, 2))
         data['recalling'] = data['recalling'].fillna(0)
         data.to_excel(file)
+        index1 = 0
         # initialization of objects
         for index, date_word_meaning_ex in data.iterrows():
             # classes and date have altering type.
@@ -124,7 +125,7 @@ class Word:
             date_becoming = date_word_meaning_ex[-2]
             recalling = date_word_meaning_ex[-1]
             object0 = Word(word_meaning_ex[0], word_meaning_ex[1], word_meaning_ex[2], date, _class,
-                           last_changes_of_class, date_becoming, recalling)
+                           last_changes_of_class, date_becoming, recalling, index1)
             Word.all_words_in_file.append(object0)
             if _class < 5:
                 Word.deck_without_reverse_cards.append(object0)
@@ -134,12 +135,12 @@ class Word:
                 Word.deck_without_shuffle.append(object0)
                 Word.deck_without_shuffle.append(
                     Word(word_meaning_ex[1], word_meaning_ex[0], word_meaning_ex[2], date, _class,
-                         last_changes_of_class, date_becoming, recalling))
+                         last_changes_of_class, date_becoming, recalling, index1))
                 shown = True
             elif recalling == 0:
                 if random.uniform(0, 1) < 0.5:
                     object0 = Word(word_meaning_ex[1], word_meaning_ex[0], word_meaning_ex[2], date, _class,
-                                   last_changes_of_class, date_becoming, recalling)
+                                   last_changes_of_class, date_becoming, recalling, index1)
 
                 Word.deck_without_shuffle.append(object0)
                 Word.deck_without_reverse_cards.append(object0)
@@ -154,10 +155,8 @@ class Word:
                         object0.recalling = random.randrange(3,
                                                                     6)
                         object0.class_changes = datetime.date.today()
-                if object0.recalling < 0:
-                    object0.recalling = random.randrange(3,
-                                                                6)
-                    object0.class_changes = datetime.date.today()
+            index1 += 1
+
 
 
 
@@ -211,7 +210,7 @@ class Word:
 
     def __init__(self, word: str, meaning: str, example: str, date: datetime, _class=0,
                  last_changes_of_class=(datetime.date.today() - datetime.timedelta(days=1)),
-                 when_becoming_5=(datetime.date(2222, 2, 2)), recalling=0):
+                 when_becoming_5=(datetime.date(2222, 2, 2)), recalling=0, index1=-1):
         self.__word = word
         self.__meaning = meaning
         self.__example = example
@@ -220,6 +219,7 @@ class Word:
         self.__last_changes_of_class = last_changes_of_class
         self.when_becoming_5 = when_becoming_5
         self.recalling = recalling
+        self.index1 = index1
 
         self.word_showing = True
         self.meaning_showing = False
@@ -309,6 +309,7 @@ class Word:
                 self.recalling -= 1
             elif self.__class == 5 and self.recalling == 0:
                 self.recalling = random.randrange(3, 6)
+
 
 
     @property
@@ -417,19 +418,19 @@ try:
                     for button in button_list:
                         if button.where_clicked(position_):
                             if button.text == 'again':
-                                Word.deck[index_current_word].class0 = 1
+                                Word.all_words_in_file[Word.deck[index_current_word].index1].class0 = 1
                                 index_current_word += 1
                             elif button.text == 'hard':
-                                Word.deck[index_current_word].class0 = 2
+                                Word.all_words_in_file[Word.deck[index_current_word].index1].class0 = 2
                                 index_current_word += 1
                             elif button.text == 'normal':
-                                Word.deck[index_current_word].class0 = 3
+                                Word.all_words_in_file[Word.deck[index_current_word].index1].class0 = 3
                                 index_current_word += 1
                             elif button.text == 'nice':
-                                Word.deck[index_current_word].class0 = 4
+                                Word.all_words_in_file[Word.deck[index_current_word].index1].class0 = 4
                                 index_current_word += 1
                             elif button.text == 'impressive':
-                                Word.deck[index_current_word].class0 = 4
+                                Word.all_words_in_file[Word.deck[index_current_word].index1].class0 = 4
                                 index_current_word += 1
                             elif button.text == 'previous card':
                                 index_current_word -= 1
@@ -466,19 +467,19 @@ try:
                     # 4 - nice
                     # 5 - very impressive
                     elif event.key == pygame.K_1:
-                        Word.deck[index_current_word].class0 = 1
+                        Word.all_words_in_file[Word.deck[index_current_word].index1].class0 = 1
                         index_current_word += 1
                     elif event.key == pygame.K_2:
-                        Word.deck[index_current_word].class0 = 2
+                        Word.all_words_in_file[Word.deck[index_current_word].index1].class0 = 2
                         index_current_word += 1
                     elif event.key == pygame.K_3:
-                        Word.deck[index_current_word].class0 = 3
+                        Word.all_words_in_file[Word.deck[index_current_word].index1].class0 = 3
                         index_current_word += 1
                     elif event.key == pygame.K_4:
-                        Word.deck[index_current_word].class0 = 4
+                        Word.all_words_in_file[Word.deck[index_current_word].index1].class0 = 4
                         index_current_word += 1
                     elif event.key == pygame.K_5:
-                        Word.deck[index_current_word].class0 = 5
+                        Word.all_words_in_file[Word.deck[index_current_word].index1].class0 = 5
                         index_current_word += 1
                     elif event.key == pygame.K_0:
                         if index_current_word + 10 <= max_index_current_word:
