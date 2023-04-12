@@ -382,7 +382,8 @@ class Word:
                     self.result = 'remembered'
             elif value < 3:
                     self.result = 'forgotten'
-                    self.__class -= 1
+                    if self.__class >= 1:
+                        self.__class -= 1
 
     @property
     def class_changes(self):
