@@ -1,10 +1,13 @@
 import datetime
+import math
+
 import pygame
 import pandas as pd
 import random
 from gtts import gTTS
 import time
 import os
+import json
 
 language = 'en-us'
 white = '#FBFBF8'
@@ -84,6 +87,7 @@ class Word:
 
     @staticmethod
     def shuffle():
+        random.shuffle(Word.deck_without_shuffle)
         data = Word.deck_without_shuffle
         normalized_data = []
         counter_for_10 = set()
@@ -104,7 +108,14 @@ class Word:
 
     @staticmethod
     def reading_from_file():
-        data = pd.read_excel(file, index_col=0, parse_dates=True)
+        # create a Pandas Excel writer using 'openpyxl' engine
+
+        data = pd.read_excel(file, index_col=0, parse_dates=True, sheet_name='Sheet1')
+        data2 = pd.read_excel(file, sheet_name='Sheet2', index_col=0)
+        # read the first sheet from the Excel file
+        writer = pd.ExcelWriter(file)
+        # modify the dataframe
+        # data = pd.read_excel(file, index_col=0, parse_dates=True, sheet_name='Sheet')
 
         data['last_changes_of_class'] = data['last_changes_of_class'].fillna(
             (datetime.date.today() - datetime.timedelta(days=1)))
@@ -112,20 +123,35 @@ class Word:
         data['date'] = data['date'].fillna(datetime.date.today())
         data['date_becoming'] = data['date_becoming'].fillna(datetime.date(2222, 2, 2))
         data['recalling'] = data['recalling'].fillna(0)
-        data.to_excel(file)
+        data['length_of_the_word'] = data['words'].apply(lambda x: len(x.strip()))
+        data['how_many_times_did_I_recalle_word'] = data['how_many_times_did_I_recalle_word'].fillna(0)
+
+        data.to_excel(writer, sheet_name='Sheet1', index=True)
+
+        data2.loc[len(data2.index)] = [datetime.date.today(), datetime.datetime.now(),
+                                       datetime.datetime.now(), datetime.datetime.now(),
+                                       len(Word.deck_without_reverse_cards), len(Word.all_words_in_file)]
+        data2.to_excel(writer, sheet_name='Sheet2', index=True)
+
+        writer.save()
+        # data.to_excel(file, sheet_name='Sheet')
         index1 = 0
         # initialization of objects
         for index, date_word_meaning_ex in data.iterrows():
             # classes and date have altering type.
+            print(date_word_meaning_ex)
             shown = False
-            word_meaning_ex = [i.strip() for i in date_word_meaning_ex.tolist()[1:-4]]
+            word_meaning_ex = [i.strip() for i in date_word_meaning_ex.tolist()[1:4]]
             date = date_word_meaning_ex.tolist()[0]
-            _class = date_word_meaning_ex.tolist()[-4]
-            last_changes_of_class = date_word_meaning_ex.tolist()[-3]
-            date_becoming = date_word_meaning_ex[-2]
-            recalling = date_word_meaning_ex[-1]
+            _class = date_word_meaning_ex.tolist()[4]
+            last_changes_of_class = date_word_meaning_ex.tolist()[5]
+            date_becoming = date_word_meaning_ex[6]
+            recalling = date_word_meaning_ex[7]
+            how_many_times_did_I_recalle_word = date_word_meaning_ex[8]
+
             object0 = Word(word_meaning_ex[0], word_meaning_ex[1], word_meaning_ex[2], date, _class,
-                           last_changes_of_class, date_becoming, recalling, index1)
+                           last_changes_of_class, date_becoming, recalling, index1,
+                           how_many_times_did_I_recalle_word)
             Word.all_words_in_file.append(object0)
             if _class < 5:
                 Word.deck_without_reverse_cards.append(object0)
@@ -135,12 +161,16 @@ class Word:
                 Word.deck_without_shuffle.append(object0)
                 Word.deck_without_shuffle.append(
                     Word(word_meaning_ex[1], word_meaning_ex[0], word_meaning_ex[2], date, _class,
-                         last_changes_of_class, date_becoming, recalling, index1))
+                         last_changes_of_class, date_becoming, recalling, index1
+                         ,
+                         how_many_times_did_I_recalle_word
+                         ))
                 shown = True
             elif recalling == 0:
                 if random.uniform(0, 1) < 0.5:
                     object0 = Word(word_meaning_ex[1], word_meaning_ex[0], word_meaning_ex[2], date, _class,
-                                   last_changes_of_class, date_becoming, recalling, index1)
+                                   last_changes_of_class, date_becoming, recalling, index1,
+                                   how_many_times_did_I_recalle_word)
 
                 Word.deck_without_shuffle.append(object0)
                 Word.deck_without_reverse_cards.append(object0)
@@ -153,12 +183,9 @@ class Word:
                         object0.class_changes = datetime.date.today()
                     if object0.recalling < 0:
                         object0.recalling = random.randrange(3,
-                                                                    6)
+                                                             6)
                         object0.class_changes = datetime.date.today()
             index1 += 1
-
-
-
 
     @staticmethod
     def save_changes():
@@ -166,17 +193,46 @@ class Word:
         classes_changes = []
         data_becoming = []
         recalling = []
+        list_how_many_times_did_I_recalle_word = []
+        time_for_each_word = []
+
         for element in Word.all_words_in_file:
             classes.append(element.class0)
             classes_changes.append(element.class_changes)
             data_becoming.append(element.when_becoming_5)
             recalling.append(element.recalling)
-        data = pd.read_excel(file, parse_dates=True, index_col=0)
+            list_how_many_times_did_I_recalle_word.append(element.how_many_times_did_I_recalle_word)
+            result = {}
+            result['time'] = element.time_for_recalling
+            result['result'] = element.result
+            result = json.dumps(result)
+            time_for_each_word.append(result)
+            print(element.word, element.how_many_times_did_I_recalle_word)
+        data = pd.read_excel(file, sheet_name='Sheet1', index_col=0, parse_dates=True)
+        data2 = pd.read_excel(file, sheet_name='Sheet2', index_col=0)
+        writer = pd.ExcelWriter(file)
+        # read the first sheet from the Excel file
+
         data['classes'] = classes
         data['last_changes_of_class'] = classes_changes
         data['date_becoming'] = data_becoming
         data['recalling'] = recalling
-        data.to_excel(file)
+        data['how_many_times_did_I_recalle_word'] = list_how_many_times_did_I_recalle_word
+        data[datetime.datetime.now()] = time_for_each_word
+
+        data.to_excel(writer, sheet_name='Sheet1', index=True)
+        print(data2['end_time'])
+        last_row = data2.iloc[-1]
+        # change the values in the last row
+        last_row['end_time'] = datetime.datetime.now()
+        starts = last_row['time_of_start']
+        last_row['duration'] = int((datetime.datetime.now() - starts).total_seconds() / 60)
+        last_row['amount_of_recalling_words'] = len(Word.deck_without_reverse_cards)
+        last_row['amount_of_words_currently'] = len(Word.all_words_in_file)
+        data2.iloc[-1] = last_row
+        data2.to_excel(writer, sheet_name='Sheet2', index=True)
+
+        writer.save()
 
     @staticmethod
     def rendering(massage: str, text: str, position):
@@ -210,7 +266,8 @@ class Word:
 
     def __init__(self, word: str, meaning: str, example: str, date: datetime, _class=0,
                  last_changes_of_class=(datetime.date.today() - datetime.timedelta(days=1)),
-                 when_becoming_5=(datetime.date(2222, 2, 2)), recalling=0, index1=-1):
+                 when_becoming_5=(datetime.date(2222, 2, 2)), recalling=0, index1=-1,
+                 how_many_times_did_I_recalle_word=0):
         self.__word = word
         self.__meaning = meaning
         self.__example = example
@@ -220,6 +277,10 @@ class Word:
         self.when_becoming_5 = when_becoming_5
         self.recalling = recalling
         self.index1 = index1
+        self.how_many_times_did_I_recalle_word = how_many_times_did_I_recalle_word
+        self.time_for_recalling = 0
+        # result can be forgotten, remembered, average, not_recalled
+        self.result = 'average'
 
         self.word_showing = True
         self.meaning_showing = False
@@ -288,29 +349,40 @@ class Word:
 
     @class0.setter
     def class0(self, value: int):
+        boolean = True
         # there is a problem with version or something.
+        self.how_many_times_did_I_recalle_word += 1
+        Word.all_words_in_file[self.index1].time_for_recalling += math.ceil(
+            (datetime.datetime.now() - timee).total_seconds())
         if self.__last_changes_of_class != datetime.date.today():
+            boolean = False
             if self.permission_for_changing_class:
                 if value > 3:
                     if self.__class != 5:
                         if self.__class + 1 == 5:
                             self.when_becoming_5 = datetime.date.today()
                         self.__class += 1
+                        self.result = 'remembered'
                 elif value < 3:
                     if self.__class != 0:
                         self.__class -= 1
+                        self.result = 'forgotten'
                     if value == 1:
                         Word.deck.append(Word.deck[index_current_word])
                 else:
-                    pass
+                    self.result = 'average'
                 self.permission_for_changing_class = False
             self.__last_changes_of_class = datetime.date.today()
             if self.recalling != 0:
                 self.recalling -= 1
             elif self.__class == 5 and self.recalling == 0:
                 self.recalling = random.randrange(3, 6)
-
-
+        if boolean:
+            if value > 3:
+                    self.result = 'remembered'
+            elif value < 3:
+                    self.result = 'forgotten'
+                    self.__class -= 1
 
     @property
     def class_changes(self):
@@ -394,6 +466,7 @@ button_list.append(next_card_button)
 button_list.append(word_button)
 button_list.append(meaning_button)
 button_list.append(example_button)
+timee = datetime.datetime.now()
 try:
     start = False
     index_current_word = 0
@@ -493,6 +566,7 @@ try:
                             pygame.time.wait(1500)
                     draw = True
                 if draw:
+                    timee = datetime.datetime.now()
                     screen.fill(white)
                     Word.deck[index_current_word].show()
                     for button in button_list:
