@@ -9,7 +9,7 @@ import time
 import os
 import json
 
-language = 'en-us'
+language = 'fi'
 white = '#FBFBF8'
 
 green = (0, 255, 0)
@@ -24,8 +24,10 @@ screen = pygame.display.set_mode((X, Y))
 pygame.display.set_caption('You can bear it, i believe in you')
 
 # xls file with the data (excel)
-file = 'capture.xlsx'
+file = 'finnish_capture.xlsx'
+
 button_list = []
+
 
 # creating buttons: again, hard, normal, nice, impressive, back, next
 class Button:
@@ -33,7 +35,6 @@ class Button:
         self.color = color
         self.x = x
         self.y = y
-
         self.width = 0
         self.height = 0
         self.text = text
@@ -71,14 +72,14 @@ class Word:
         try:
             my_obj = gTTS(text=object_.current, lang=language, slow=False)
             my_obj.save("welcome.mp3")
-            time.sleep(0.001)
+            time.sleep(0.1)
             pygame.mixer.init()
             pygame.mixer.music.load('welcome.mp3')
             pygame.mixer.music.play()
             clock = pygame.time.Clock()
             while pygame.mixer.music.get_busy():
                 pygame.event.poll()
-                clock.tick(1)
+                clock.tick(10)
             pygame.mixer.quit()
             os.remove('welcome.mp3')
         except:
@@ -149,11 +150,9 @@ class Word:
             recalling = date_word_meaning_ex[7]
             how_many_times_did_I_recalle_word = date_word_meaning_ex[8]
 
-            russian = date_word_meaning_ex[10]
-
             object0 = Word(word_meaning_ex[0], word_meaning_ex[1], word_meaning_ex[2], date, _class,
                            last_changes_of_class, date_becoming, recalling, index1,
-                           how_many_times_did_I_recalle_word, russian)
+                           how_many_times_did_I_recalle_word)
             Word.all_words_in_file.append(object0)
             if _class < 5:
                 Word.deck_without_reverse_cards.append(object0)
@@ -165,16 +164,14 @@ class Word:
                     Word(word_meaning_ex[1], word_meaning_ex[0], word_meaning_ex[2], date, _class,
                          last_changes_of_class, date_becoming, recalling, index1
                          ,
-                         how_many_times_did_I_recalle_word,
-                         russian
+                         how_many_times_did_I_recalle_word
                          ))
                 shown = True
             elif recalling == 0:
                 if random.uniform(0, 1) < 0.5:
                     object0 = Word(word_meaning_ex[1], word_meaning_ex[0], word_meaning_ex[2], date, _class,
                                    last_changes_of_class, date_becoming, recalling, index1,
-                                   how_many_times_did_I_recalle_word,
-                                   russian)
+                                   how_many_times_did_I_recalle_word)
 
                 Word.deck_without_shuffle.append(object0)
                 Word.deck_without_reverse_cards.append(object0)
@@ -271,13 +268,10 @@ class Word:
     def __init__(self, word: str, meaning: str, example: str, date: datetime, _class=0,
                  last_changes_of_class=(datetime.date.today() - datetime.timedelta(days=1)),
                  when_becoming_5=(datetime.date(2222, 2, 2)), recalling=0, index1=-1,
-                 how_many_times_did_I_recalle_word=0, russian=''):
+                 how_many_times_did_I_recalle_word=0):
         self.__word = word
         self.__meaning = meaning
         self.__example = example
-        self.__russian = russian
-
-
         self.__class = _class
         self.__date = date
         self.__last_changes_of_class = last_changes_of_class
@@ -292,14 +286,12 @@ class Word:
         self.word_showing = True
         self.meaning_showing = False
         self.example_showing = False
-        self.russian_showing = False
         self.permission_for_changing_class = True
 
-    def switch(self, word=False, meaning=False, example=False, russian=False):
+    def switch(self, word=False, meaning=False, example=False):
         self.word_showing = word
         self.meaning_showing = meaning
         self.example_showing = example
-        self.russian_showing = russian
 
     def show_word(self):
         if self.word:
@@ -313,19 +305,13 @@ class Word:
         if self.example:
             pass
 
-    def show_russian(self):
-        if self.russian:
-            pass
-
     def show(self):
         if self.word_showing:
             self.show_word()
         elif self.meaning_showing:
             self.show_meaning()
-        elif self.example_showing:
-            self.show_example()
         else:
-            self.show_russian()
+            self.show_example()
 
     @property
     def word(self):
@@ -353,15 +339,6 @@ class Word:
     def example(self):
         Word.rendering('example:', self.__example, (20, 20))
         return self.__example
-
-    @property
-    def russian(self):
-        return self.__russian
-
-    @russian.getter
-    def russian(self):
-        Word.rendering('example:', self.__russian, (20, 20))
-        return self.__russian
 
     @property
     def class0(self):
@@ -429,8 +406,6 @@ class Word:
             return self.__meaning
         if self.example_showing:
             return self.__example
-        if self.russian_showing:
-            return self.__russian
 
 
 try:
@@ -557,8 +532,6 @@ try:
                         Word.deck[index_current_word].switch(meaning=True)
                     elif event.key == pygame.K_s:
                         Word.deck[index_current_word].switch(example=True)
-                    elif event.key == pygame.K_g:
-                        Word.deck[index_current_word].switch(russian=True)
                     elif event.key == pygame.K_SPACE or event.key == pygame.K_RIGHT:
                         index_current_word += 1
                     elif event.key == pygame.K_c or event.key == pygame.K_x:
