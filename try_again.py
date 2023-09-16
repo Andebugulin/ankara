@@ -27,6 +27,30 @@ pygame.display.set_caption('You can bear it, i believe in you')
 file = 'capture.xlsx'
 button_list = []
 
+
+def days_since_first_day(data):
+    # Get the current datetime
+    current_datetime = datetime.date.today()
+
+    # Convert data to datetime if it's a pandas Timestamp
+    if isinstance(data, pd.Timestamp):
+        data = data.to_pydatetime().date()
+    # Calculate the number of days since the first day passed for data
+    days_data = (current_datetime - data).days
+
+    print('days_since_first_day', days_data)
+
+    if days_data > 150:
+        return 15
+    if days_data > 90:
+        return 12
+    if days_data > 60:
+        return 9
+    if days_data > 30:
+        return 6
+    return 4
+
+
 # creating buttons: again, hard, normal, nice, impressive, back, next
 class Button:
     def __init__(self, color, x, y, text=''):
@@ -186,8 +210,9 @@ class Word:
                         object0.recalling -= 1
                         object0.class_changes = datetime.date.today()
                     if object0.recalling < 0:
-                        object0.recalling = random.randrange(3,
-                                                             6)
+                        days_since_first_day_count = days_since_first_day(object0.data)
+                        object0.recalling = random.randrange(days_since_first_day_count,
+                                                             days_since_first_day_count + 5)
                         object0.class_changes = datetime.date.today()
             index1 += 1
 
@@ -281,6 +306,7 @@ class Word:
         self.__class = _class
         self.__date = date
         self.__last_changes_of_class = last_changes_of_class
+        self.data = date
         self.when_becoming_5 = when_becoming_5
         self.recalling = recalling
         self.index1 = index1
@@ -400,7 +426,9 @@ class Word:
             if self.recalling != 0:
                 self.recalling -= 1
             elif self.__class == 5 and self.recalling == 0:
-                self.recalling = random.randrange(3, 6)
+                days_since_first_day_count = days_since_first_day(self.data)
+                print('data:', self.data, 'days since first day desicion', days_since_first_day_count)
+                self.recalling = random.randrange(days_since_first_day_count, days_since_first_day_count + 5)
         if boolean:
             if value > 3:
                 self.result = 'remembered'
