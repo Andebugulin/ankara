@@ -8,6 +8,25 @@ from gtts import gTTS
 import time
 import os
 import json
+import shutil
+
+
+def copy_file(source_file, destination_file):
+    try:
+        shutil.copy2(source_file, destination_file)
+        print(f"File copied from {source_file} to {destination_file}")
+    except FileNotFoundError:
+        print(f"The source file '{source_file}' does not exist.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+
+# Specify the source and destination file names
+source_file = "capture.xlsx"
+destination_file = "copy_of_capture.xlsx"
+
+# Call the copy_file function
+copy_file(source_file, destination_file)
 
 language = 'en-us'
 white = '#FBFBF8'
@@ -302,7 +321,6 @@ class Word:
         self.__example = example
         self.__russian = russian
 
-
         self.__class = _class
         self.__date = date
         self.__last_changes_of_class = last_changes_of_class
@@ -359,7 +377,7 @@ class Word:
 
     @word.getter
     def word(self):
-        Word.rendering('word:', self.__word, (20, 20))
+        Word.rendering(f'word: (class - {self.__class})', self.__word, (20, 20))
         return self.__word
 
     @property
@@ -368,7 +386,7 @@ class Word:
 
     @meaning.getter
     def meaning(self):
-        Word.rendering('meaning:', self.__meaning, (20, 20))
+        Word.rendering(f'meaning: (class - {self.__class})', self.__meaning, (20, 20))
         return self.__meaning
 
     @property
@@ -377,7 +395,7 @@ class Word:
 
     @example.getter
     def example(self):
-        Word.rendering('example:', self.__example, (20, 20))
+        Word.rendering(f'example: (class - {self.__class})', self.__example, (20, 20))
         return self.__example
 
     @property
@@ -386,7 +404,7 @@ class Word:
 
     @russian.getter
     def russian(self):
-        Word.rendering('example:', self.__russian, (20, 20))
+        Word.rendering(f'example: (class - {self.__class})', self.__russian, (20, 20))
         return self.__russian
 
     @property

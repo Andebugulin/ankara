@@ -319,7 +319,7 @@ class Word:
 
     @word.getter
     def word(self):
-        Word.rendering('word:', self.__word, (20, 20))
+        Word.rendering(f'word: (class - {self.__class})', self.__word, (20, 20))
         return self.__word
 
     @property
@@ -328,7 +328,7 @@ class Word:
 
     @meaning.getter
     def meaning(self):
-        Word.rendering('meaning:', self.__meaning, (20, 20))
+        Word.rendering(f'meaning: (class - {self.__class})', self.__meaning, (20, 20))
         return self.__meaning
 
     @property
@@ -337,7 +337,7 @@ class Word:
 
     @example.getter
     def example(self):
-        Word.rendering('example:', self.__example, (20, 20))
+        Word.rendering(f'example: (class - {self.__class})', self.__example, (20, 20))
         return self.__example
 
     @property
