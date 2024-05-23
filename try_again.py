@@ -18,47 +18,39 @@ Days_full_of_relax_if_class_is_5 = 3
 pygame.init()
 X, Y = 1700, 900
 screen = pygame.display.set_mode((X, Y))
-pygame.display.set_caption('You can bear it, i believe in you')
+pygame.display.set_caption('You can bear it, I believe in you')
 
-# xls file with the data (excel)
-file = 'capture.xlsx'
+# File paths
+excel_file = 'capture.xlsx'
+csv_file = 'capture.csv'
 button_list = []
 
-
-# creating buttons: again, hard, normal, nice, impressive, back, next
 class Button:
-    def __init__(self, color, x, y, text=''):
+    def __init__(self, color, x, y, text='', font_size=50):
         self.color = color
         self.x = x
         self.y = y
+        self.text = text
+        self.font_size = font_size
         self.width = 0
         self.height = 0
-        self.text = text
 
     def draw(self, display_drawing):
-        # Call this method to draw the button on the screen
-        font = pygame.font.SysFont('Helvetica', 50)
+        font = pygame.font.SysFont('Helvetica', self.font_size)
         text = font.render(self.text, True, (0, 0, 0))
         self.width, self.height = text.get_size()
-        display_drawing.blit(text,
-                             (self.x + 10,
-                              self.y - 50))
-
-        pygame.draw.rect(display_drawing, black, (self.x, self.y - self.height, self.width + 20, self.height + 20), 4)
+        display_drawing.blit(text, (self.x + 10, self.y - self.height // 2))
+        pygame.draw.rect(display_drawing, black, (self.x, self.y - self.height // 2, self.width + 20, self.height + 20), 4)
 
     def where_clicked(self, pos):
-        # Pos is the mouse position or a tuple of (x,y) coordinates
         if (pos[0] > self.x) and (pos[0] < self.x + self.width + 20):
-            if (pos[1] > self.y - self.height) and (pos[1] < self.y + 20 + self.height):
+            if (pos[1] > self.y - self.height // 2) and (pos[1] < self.y + self.height // 2):
                 return True
         return False
 
-
-# creating class word with words meanings and examples.
 class Word:
     all_words_in_file = []
     screen = screen
-    font = pygame.font.SysFont('Helvetica', 70)
     deck_without_shuffle = []
     deck = []
     deck_without_reverse_cards = []
@@ -103,8 +95,13 @@ class Word:
                 Word.deck.append(j)
 
     @staticmethod
-    def reading_from_file():
-        data = pd.read_excel(file, index_col=0, parse_dates=True)
+    def read_file():
+        if os.path.exists(excel_file):
+            data = pd.read_excel(excel_file, index_col=0, parse_dates=True)
+        elif os.path.exists(csv_file):
+            data = pd.read_csv(csv_file, index_col=0, parse_dates=True)
+        else:
+            raise FileNotFoundError("No input file found.")
 
         data['last_changes_of_class'] = data['last_changes_of_class'].fillna(
             (datetime.date.today() - datetime.timedelta(days=1)))
@@ -112,10 +109,9 @@ class Word:
         data['date'] = data['date'].fillna(datetime.date.today())
         data['date_becoming'] = data['date_becoming'].fillna(datetime.date(2222, 2, 2))
         data['recalling'] = data['recalling'].fillna(0)
-        data.to_excel(file)
+        Word.save_file(data)  # Save to both Excel and CSV
         # initialization of objects
         for index, date_word_meaning_ex in data.iterrows():
-            # classes and date have altering type.
             word_meaning_ex = [i.strip() for i in date_word_meaning_ex.tolist()[1:-4]]
             date = date_word_meaning_ex.tolist()[0]
             _class = date_word_meaning_ex.tolist()[-4]
@@ -127,9 +123,6 @@ class Word:
             Word.all_words_in_file.append(object0)
             if _class < 5:
                 Word.deck_without_reverse_cards.append(object0)
-
-                # for reverse cards ( cards where questionare may ask about cards' meaning as well )
-
                 Word.deck_without_shuffle.append(object0)
                 Word.deck_without_shuffle.append(
                     Word(word_meaning_ex[1], word_meaning_ex[0], word_meaning_ex[2], date, _class,
@@ -138,7 +131,6 @@ class Word:
                 if random.uniform(0, 1) < 0.5:
                     object0 = Word(word_meaning_ex[1], word_meaning_ex[0], word_meaning_ex[2], date, _class,
                                    last_changes_of_class, date_becoming, recalling)
-
                 Word.deck_without_shuffle.append(object0)
                 Word.deck_without_reverse_cards.append(object0)
         for word_not_shown in Word.all_words_in_file:
@@ -151,54 +143,57 @@ class Word:
                     word_not_shown.recalling -= 1
         time.sleep(0.001)
 
-
+    @staticmethod
+    def save_file(data=None):
+        if data is None:
+            classes = []
+            classes_changes = []
+            data_becoming = []
+            recalling = []
+            for element in Word.all_words_in_file:
+                classes.append(element.class0)
+                classes_changes.append(element.class_changes)
+                data_becoming.append(element.when_becoming_5)
+                recalling.append(element.recalling)
+            data = pd.read_excel(excel_file, parse_dates=True, index_col=0)
+            data['classes'] = classes
+            data['last_changes_of_class'] = classes_changes
+            data['date_becoming'] = data_becoming
+            data['recalling'] = recalling
+        data.to_excel(excel_file)
+        data.to_csv(csv_file)
 
     @staticmethod
-    def save_changes():
-        classes = []
-        classes_changes = []
-        data_becoming = []
-        recalling = []
-        for element in Word.all_words_in_file:
-            classes.append(element.class0)
-            classes_changes.append(element.class_changes)
-            data_becoming.append(element.when_becoming_5)
-            recalling.append(element.recalling)
-        data = pd.read_excel(file, parse_dates=True, index_col=0)
-        data['classes'] = classes
-        data['last_changes_of_class'] = classes_changes
-        data['date_becoming'] = data_becoming
-        data['recalling'] = recalling
-        data.to_excel(file)
-
-    @staticmethod
-    def rendering(massage: str, text: str, position):
+    def rendering(message: str, text: str, position, font_size=70):
         if len(button_list) > 1:
             button_list.pop(0)
-        sentence = massage.split()
-        space = Word.font.size(' ')[0]
+        font = pygame.font.SysFont('Helvetica', font_size)
         x, y = position
-        for element in sentence:
-            word_surface = Word.font.render(element, True, black)
-            word_wid, word_hei = word_surface.get_size()
-            if x + word_wid >= X:
-                x = position[0]
-                y += 80
-            Word.screen.blit(word_surface, (x, y))
-            x += word_wid + space
 
-        x = position[0]
-        y += 80
-        sentence = text.split()
-        for text in sentence:
-            word_surface = Word.font.render(text, True, black)
-            word_wid, word_hei = word_surface.get_size()
-            if x + word_wid >= X:
-                x = position[0]
-                y += 80
-            Word.screen.blit(word_surface, (x, y))
-            x += word_wid + space
-        button_pronunciation = Button(white, 10, y + 160, text='pronunciation')
+        def render_paragraph(paragraph, x, y):
+            words = paragraph.split(' ')
+            space = font.size(' ')[0]
+            for word in words:
+                word_surface = font.render(word, True, black)
+                word_wid, word_hei = word_surface.get_size()
+                if x + word_wid >= X:
+                    x = position[0]
+                    y += word_hei
+                Word.screen.blit(word_surface, (x, y))
+                x += word_wid + space
+            return position[0], y + word_hei + 5  # Reset x to the original position, reduced space between lines
+
+        lines = message.split('\n')
+        for line in lines:
+            x, y = render_paragraph(line, x, y)
+
+        y += 20  # Increased space between text and pronunciation button
+
+        lines = text.split('\n')
+        for line in lines:
+            x, y = render_paragraph(line, x, y)
+
+        button_pronunciation = Button(white, 10, y + 30, text='pronunciation', font_size=font_size // 2)
         button_list.insert(0, button_pronunciation)
 
     def __init__(self, word: str, meaning: str, example: str, date: datetime, _class=0,
@@ -212,7 +207,6 @@ class Word:
         self.__last_changes_of_class = last_changes_of_class
         self.when_becoming_5 = when_becoming_5
         self.recalling = recalling
-
         self.word_showing = True
         self.meaning_showing = False
         self.example_showing = False
@@ -280,7 +274,6 @@ class Word:
 
     @class0.setter
     def class0(self, value: int):
-        # there is a problem with version or something.
         if self.__last_changes_of_class != datetime.date.today():
             if self.permission_for_changing_class:
                 if value > 3:
@@ -308,6 +301,7 @@ class Word:
     @class_changes.getter
     def class_changes(self):
         return self.__last_changes_of_class
+
     @class_changes.setter
     def class_changes(self, value: int):
         self.__last_changes_of_class = value
@@ -321,33 +315,34 @@ class Word:
         if self.example_showing:
             return self.__example
 
-
 try:
-    Word.reading_from_file()
+    Word.read_file()
 except PermissionError:
-    print('PermissionError, it seems that you forgot to close the excel file and we cannot approach it.')
-    print('just close the file.')
+    print('PermissionError, it seems that you forgot to close the excel or csv file and we cannot access it.')
+    print('Just close the file.')
 screen.fill(white)
 Word.rendering('hello',
-               '''for start press almost random key :^)-----------------------------------------------------------------
-               -
-               -
-               -       
-
-                  Instructions: 
-                  Tool for learning words
-                   ---------------------------------------------------------------------------------                                             
-                  use short_keys:                             
-                  keys: Ff(word)- Dd(face)- Ss(example)- Space(for the next word) -
-                  Arrow to the right side(for the next word) -
-                  Arrow to the left side(for the previous word)
-                  --------------------------------------------------------------------------       
-                  evaluation: 1 do not remember-
-                              2 hard -
-                              3 normal  -
-                              4 nice-
-                              5 very impressive''',
-               (20, 20))
+               '''for start press almost random key :^)\n
+                  Instructions:\n
+                  Tool for learning words\n
+                   ---------------------------------------------------------------------------------\n
+                  use short_keys:\n
+                  keys: Ff(word) - Dd(meaning) - Ss(example) - Space(for the next word) -\n
+                  n - (for the next word) -\n
+                  p - (for the previous word)\n
+                  --------------------------------------------------------------------------\n
+                  evaluation:\n
+                              h do not remember -\n
+                              j hard -\n
+                              k normal -\n
+                              l nice -\n
+                              i very impressive\n
+                  --------------------------------------------------------------------------\n
+                  additional functions:\n
+                  a - Play pronunciation of the word\n
+                  0 - Skip 10 words forward\n
+               ''',
+               (20, 20), font_size=15)
 pygame.display.update()
 
 start = False
@@ -360,18 +355,17 @@ while not start:
             start = True
 Word.shuffle()
 
-# all the buttons
 N = 30
-again_button = Button(white, 0 * X // 10 + 430, Y - N, text='again')
-hard_button = Button(white, X // 10 + 400, Y - N, text='hard')
-normal_button = Button(white, 2 * X // 10 + 430, Y - N, text='normal')
-nice_button = Button(white, 3 * X // 10 + 497, Y - N, text='nice')
-impressive_button = Button(white, 4 * X // 10 + 440, Y - N, text='impressive')
-back_card_button = Button(white, 10, Y - N, text='previous card')
-next_card_button = Button(white, 1500, Y - N, text='next card')
-word_button = Button(white, 600, Y - 4 * N, text='word')
-meaning_button = Button(white, 753, Y - 4 * N, text='meaning')
-example_button = Button(white, 972, Y - 4 * N, text='example')
+again_button = Button(white, 0 * X // 10 + 430, Y - N, text='again', font_size=30)
+hard_button = Button(white, X // 10 + 400, Y - N, text='hard', font_size=30)
+normal_button = Button(white, 2 * X // 10 + 430, Y - N, text='normal', font_size=30)
+nice_button = Button(white, 3 * X // 10 + 497, Y - N, text='nice', font_size=30)
+impressive_button = Button(white, 4 * X // 10 + 440, Y - N, text='impressive', font_size=30)
+back_card_button = Button(white, 10, Y - N, text='previous card', font_size=30)
+next_card_button = Button(white, 1500, Y - N, text='next card', font_size=30)
+word_button = Button(white, 600, Y - 4 * N, text='word', font_size=30)
+meaning_button = Button(white, 753, Y - 4 * N, text='meaning', font_size=30)
+example_button = Button(white, 972, Y - 4 * N, text='example', font_size=30)
 button_list.append(again_button)
 button_list.append(hard_button)
 button_list.append(normal_button)
@@ -392,12 +386,11 @@ try:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     try:
-                        Word.save_changes()
+                        Word.save_file()
                     except PermissionError:
                         print(
-                            'PermissionError, it seems that you forgot to close the excel file and we cannot approach'
-                            ' it.')
-                        print('just close the file.')
+                            'PermissionError, it seems that you forgot to close the excel or csv file and we cannot access it.')
+                        print('Just close the file.')
                     pygame.quit()
                     quit()
                 if event.type == pygame.MOUSEBUTTONDOWN:
@@ -438,34 +431,23 @@ try:
                     if event.key == pygame.K_ESCAPE:
                         pygame.quit()
                         quit()
-                    if event.key == pygame.K_f:
-                        Word.deck[index_current_word].switch(word=True)
-                    elif event.key == pygame.K_d:
-                        Word.deck[index_current_word].switch(meaning=True)
-                    elif event.key == pygame.K_s:
-                        Word.deck[index_current_word].switch(example=True)
-                    elif event.key == pygame.K_SPACE or event.key == pygame.K_RIGHT:
+                    if event.key == pygame.K_n:
                         index_current_word += 1
-                    elif event.key == pygame.K_LEFT:
+                    elif event.key == pygame.K_p:
                         index_current_word -= 1
-                    # 1 - do not remember
-                    # 2 - hard
-                    # 3 - normal
-                    # 4 - nice
-                    # 5 - very impressive
-                    elif event.key == pygame.K_1:
+                    elif event.key == pygame.K_h:
                         Word.deck[index_current_word].class0 = 1
                         index_current_word += 1
-                    elif event.key == pygame.K_2:
+                    elif event.key == pygame.K_j:
                         Word.deck[index_current_word].class0 = 2
                         index_current_word += 1
-                    elif event.key == pygame.K_3:
+                    elif event.key == pygame.K_k:
                         Word.deck[index_current_word].class0 = 3
                         index_current_word += 1
-                    elif event.key == pygame.K_4:
+                    elif event.key == pygame.K_l:
                         Word.deck[index_current_word].class0 = 4
                         index_current_word += 1
-                    elif event.key == pygame.K_5:
+                    elif event.key == pygame.K_i:
                         Word.deck[index_current_word].class0 = 5
                         index_current_word += 1
                     elif event.key == pygame.K_0:
@@ -473,11 +455,18 @@ try:
                             index_current_word += 10
                         else:
                             screen.fill(white)
-                            Word('warning: you can not move further with key 0, you reached the end of the list', '',
-                                 '',
+                            Word('Warning: you cannot move further with key 0, you reached the end of the list', '', '',
                                  datetime.date.today(), 0).show()
                             pygame.display.update()
                             pygame.time.wait(1500)
+                    elif event.key == pygame.K_f:
+                        Word.deck[index_current_word].switch(word=True)
+                    elif event.key == pygame.K_d:
+                        Word.deck[index_current_word].switch(meaning=True)
+                    elif event.key == pygame.K_s:
+                        Word.deck[index_current_word].switch(example=True)
+                    elif event.key == pygame.K_a:
+                        Word.pronunciation(Word.deck[index_current_word])
                     draw = True
                 if draw:
                     screen.fill(white)
@@ -497,13 +486,13 @@ try:
                     draw = False
     except IndexError:
         try:
-            Word.save_changes()
+            Word.save_file()
         except PermissionError:
-            print('PermissionError, it seems that you forgot to close the excel file and we cannot approach it.')
-            print('just close the file.')
+            print('PermissionError, it seems that you forgot to close the excel or csv file and we cannot access it.')
+            print('Just close the file.')
         pygame.quit()
         quit()
 except ValueError:
-    print('you did not end lesson, values were not saved.')
+    print('You did not end lesson, values were not saved.')
 pygame.quit()
 quit()
