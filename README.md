@@ -1,7 +1,7 @@
-# Vocabulary Learning Tool
+# Vocabulary Learning Tool - Ankara
 
 <p align="center">
-  <img src="./ankara.png" alt="Vocabulary Learning Tool (Ankara) Logo">
+  <img src="./ankara.png" width="500px" alt="Vocabulary Learning Tool (Ankara) Logo">
 </p>
 
 Welcome to the **Vocabulary Learning Tool**, an interactive and engaging way to enhance your vocabulary. This application utilizes principles of spaced repetition and randomization to help users effectively learn and retain new words.
