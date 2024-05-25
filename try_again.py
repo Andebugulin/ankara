@@ -327,7 +327,7 @@ Word.rendering('hello',
                   Tool for learning words\n
                    ---------------------------------------------------------------------------------\n
                   use short_keys:\n
-                  keys: Ff(word) - Dd(meaning) - Ss(example) - Space(for the next word) -\n
+                  keys: Ff(word) - Dd(meaning) - Ss(example) - Aa(for pronunciation) -\n
                   n - (for the next word) -\n
                   p - (for the previous word)\n
                   --------------------------------------------------------------------------\n
@@ -339,7 +339,6 @@ Word.rendering('hello',
                               i very impressive\n
                   --------------------------------------------------------------------------\n
                   additional functions:\n
-                  a - Play pronunciation of the word\n
                   0 - Skip 10 words forward\n
                ''',
                (20, 20), font_size=15)
