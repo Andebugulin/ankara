@@ -1,0 +1,7 @@
+{
+  "auto_backup": true,
+  "backup_interval_days": 7,
+  "max_backups": 10,
+  "last_backup": "20250912_143722",
+  "pronunciation_language": "en"
+}
