@@ -370,7 +370,16 @@ class WordManager:
             chunk_size = 1000
             chunks = []
             
-            for chunk in pd.read_csv(CSV_FILE, chunksize=chunk_size, parse_dates=['date', 'last_changes_of_class', 'when_becoming_5']):
+
+            date_columns = []
+            if 'date' in pd.read_csv(CSV_FILE, nrows=1).columns:
+                date_columns.append('date')
+            if 'last_changes_of_class' in pd.read_csv(CSV_FILE, nrows=1).columns:
+                date_columns.append('last_changes_of_class')
+            if 'when_becoming_5' in pd.read_csv(CSV_FILE, nrows=1).columns:
+                date_columns.append('when_becoming_5')
+
+            for chunk in pd.read_csv(CSV_FILE, chunksize=chunk_size, parse_dates=date_columns):                
                 chunks.append(chunk)
             
             if not chunks:
@@ -378,8 +387,14 @@ class WordManager:
                 
             data = pd.concat(chunks, ignore_index=True)
             
-            # Fill missing values efficiently
-            default_values = {
+            # Check required columns
+            required_columns = ['word', 'meaning', 'example']
+            for col in required_columns:
+                if col not in data.columns:
+                    raise ValueError(f"Required column '{col}' not found in CSV")
+
+            # Add missing optional columns
+            optional_defaults = {
                 'class_level': 0,
                 'recalling': 0,
                 'study_sessions': 0,
@@ -390,8 +405,12 @@ class WordManager:
                 'last_changes_of_class': datetime.date.today() - datetime.timedelta(days=1),
                 'when_becoming_5': datetime.date(2222, 2, 2)
             }
-            
-            data = data.fillna(default_values)
+
+            for col, default_val in optional_defaults.items():
+                if col not in data.columns:
+                    data[col] = default_val
+                else:
+                    data[col] = data[col].fillna(default_val)
             
             # Create word objects
             self.all_words = []
@@ -436,6 +455,14 @@ class WordManager:
     
     def create_deck(self):
         """Create study deck with optimized shuffling"""
+        DAILY_LIMITS = {
+            0: 20,  # Max 20 new cards (class 0) per day
+            1: 30,  # Max 30 class 1 cards per day
+            2: 40,  # Max 40 class 2 cards per day
+            3: 50,  # Max 50 class 3 cards per day
+            4: 60   # Max 60 class 4 cards per day
+        }
+
         self.deck = []
         self.deck_without_reverse = []
         
@@ -450,8 +477,12 @@ class WordManager:
         # Process each class level
         for class_level, words in words_by_class.items():
             if class_level < 5:
-                # Add forward and reverse cards for classes < 5
-                for word in words:
+                # Apply daily limits
+                limit = DAILY_LIMITS.get(class_level, len(words))
+                limited_words = words[:limit] if len(words) > limit else words
+                
+                # Add forward and reverse cards for limited words
+                for word in limited_words:
                     self.deck_without_reverse.append(word)
                     self.deck.append(word)
                     
